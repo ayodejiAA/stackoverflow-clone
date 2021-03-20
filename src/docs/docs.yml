@@ -1,0 +1,603 @@
+openapi: 3.0.1
+
+info:
+  title: Stackoverflow-clone api doc
+  description: A simple clone of Stackoverflow
+  version: 1.0.0
+  contact:
+    email: afolabiayodejia@gmail.com
+
+license:
+  name: ISC
+
+servers:
+  - url: /
+    desription: Localhost server
+
+paths:
+  /api/v1/auth/signup:
+    post:
+      summary: Register new user
+      description: Allow new users to register to use the application on providing valid details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/userSignupDetails'
+        description: user details
+      responses:
+        201:
+          description: New user created successfully.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/signupResponse'
+
+        409:
+          description: Email has already been taken.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        422:
+          description: Validaton errors.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/validationErrorResponse'
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/auth/login:
+    post:
+      summary: User login
+      description: Allow existing users to login to use the application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/UserLoginDetails'
+        description: user to be created
+
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/loginResponse'
+        401:
+          description: Email or password incorrect.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+
+        422:
+          description: Validaton errors.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/validationErrorResponse'
+
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/questions/:
+    post:
+      summary: Ask a question
+      description: Allow users to ask question on the platform
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/AskQuestionDetails'
+
+      responses:
+        201:
+          description: Question successfully created
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+
+        422:
+          description: Validaton errors.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/validationErrorResponse'
+
+        401:
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+
+        500:
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/questions/{questionId}:
+    get:
+      summary: Retrieve specific question using the question ID
+      description: Allows the user to get simple question details
+      parameters:
+        - in: path
+          name: questionId
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Successful Retrieval
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        404:
+          description: Question not found.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/questions/{questionId}/view:
+    get:
+      summary: Retrieve full question data using the question ID
+      description: Allows the user to get question with comments and other related data using the question
+      parameters:
+        - in: path
+          name: questionId
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Successful Retrieval
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        404:
+          description: Question not found.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/questions/{questionId}/answers:
+    post:
+      summary: User route to answer specific question
+      description: Allows users to create answers
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: questionId
+          type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/AnswerDetails'
+
+      responses:
+        201:
+          description: Answers added successfully
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        401:
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        404:
+          description: Question ID or Url requested not found
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        422:
+          description: Validaton errors.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/validationErrorResponse'
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/questions/{questionId}/upvote:
+    post:
+      summary: User route to upvote a specific question
+      description: Allows users to rate a question by upvoting. Next upvote by same user on same question downvotes the question
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: questionId
+          type: integer
+          required: true
+
+      responses:
+        200:
+          description: Question downvote successful
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        201:
+          description: Question upvote successful
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        401:
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        404:
+          description: Question ID or Url requested not found
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/questions/{questionId}/downvote:
+    post:
+      summary: User route to downvote a specific question
+      description: Allows users to rate a question by downvoting.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: questionId
+          type: integer
+          required: true
+
+      responses:
+        200:
+          description: Question downvote successful
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        401:
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        404:
+          description: Question ID or Url requested not found
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        409:
+          description: You have not downvoted this question
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/questions/{questionId}/answers/{answerId}/upvote:
+    post:
+      summary: User route to upvote a specific answer
+      description: Allows users to rate an answer by upvoting. Next upvote by same user on same question downvotes the answer
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: questionId
+          type: integer
+          required: true
+        - in: path
+          name: answerId
+          type: integer
+          required: true
+
+      responses:
+        200:
+          description: Answer downvote successful
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        201:
+          description: Answer upvote successful
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        401:
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        404:
+          description: Question ID or Url requested not found / Answer not found
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+  /api/v1/questions/{questionId}/answers/{answerId}/downvote:
+    post:
+      summary: User route to downvote a specific answer for a question.
+      description: Allows users to rate an answer by downvoting.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: questionId
+          type: integer
+          required: true
+        - in: path
+          name: answerId
+          type: integer
+          required: true
+
+      responses:
+        200:
+          description: Answer downvote successful
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/successResponse'
+        401:
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        404:
+          description: Question ID or Url requested not found
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        409:
+          description: You have not downvoted this answer
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/errorResponse'
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/serverErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      description: Authorization with JWT Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  userSignupDetails:
+    type: object
+    required:
+      - displayName
+      - email
+      - password
+    properties:
+      displayName:
+        type: string
+        example: ayodejiaa
+      email:
+        type: string
+        example: email@gmail.com
+      password:
+        type: string
+        example: Qwerty1234
+
+  UserLoginDetails:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        example: email@gmail.com
+      password:
+        type: string
+        example: Qwerty1234
+
+  AskQuestionDetails:
+    type: object
+    required:
+      - title
+      - body
+    properties:
+      title:
+        type: string
+        example: How to horizontally center an element
+      body:
+        type: string
+        example: How can I horizontally center a <div> within another <div> using CSS?
+
+  AnswerDetails:
+    type: object
+    required:
+      - text
+    properties:
+      text:
+        text: string
+        example: Use flexbox
+
+  schemas:
+    signupResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: User account successfully created
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            email:
+              type: string
+              example: email@gmail.com
+            displayName:
+              type: string
+              example: ayodejiaa
+            created:
+              type: string
+              example: '2021-02-01T02:05:04.276Z'
+
+    loginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: User login successful
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            email:
+              type: string
+              example: email@gmail.com
+            displayName:
+              type: string
+              example: ayodejiaa
+            createdAt:
+              type: string
+              example: '2021-02-01T02:05:04.276Z'
+
+    errorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: error message
+        status:
+          type: string
+          example: error
+        data:
+          type: null
+          example: 'null'
+
+    serverErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Internal server error
+        status:
+          type: string
+          example: error
+        data:
+          type: null
+          example: 'null'
+
+    successResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Success message
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            field:
+              type: string
+              example: ...
+            anotherField:
+              type: string
+              example: ...
+
+    validationErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: error message
+        status:
+          type: string
+          example: error
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: error message

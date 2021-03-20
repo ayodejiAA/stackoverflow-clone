@@ -1,0 +1,8 @@
+{
+  // Run ESLint each time you save a file
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  // Format on save
+  "editor.formatOnSave": true
+}
